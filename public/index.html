@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Mon Cerveau</title>
+<style>
+:root{
+  --bg:#0d0d0f;--surf:#141416;--surf2:#1c1c1f;
+  --brd:#2a2a2e;--brd2:#3a3a3f;
+  --txt:#f0ede8;--txt2:#8a8880;--txt3:#4a4845;
+  --acc:#e8c84a;--red:#c84a4a;--ora:#c88a4a;--grn:#4ac87a;--blu:#4a90c8;
+  --pc:#4a90c8;--ac:#4ac87a;--rc:#e8c84a;
+  --nh:60px;--hh:52px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{
+  background:var(--bg);color:var(--txt);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  min-height:100vh;
+  padding-top:var(--hh);
+  padding-bottom:calc(var(--nh) + env(safe-area-inset-bottom,16px));
+}
+.serif{font-family:Georgia,'Times New Roman',serif}
+.mono{font-family:'Courier New',Courier,monospace}
+
+/* HEADER */
+.hd{position:fixed;top:0;left:0;right:0;height:var(--hh);z-index:100;
+  background:rgba(13,13,15,.97);border-bottom:1px solid var(--brd);
+  display:flex;align-items:center;justify-content:space-between;padding:0 16px}
+.logo{font-family:Georgia,serif;font-style:italic;font-size:19px;color:var(--txt)}
+.logo em{color:var(--acc);font-style:normal}
+.hchips{display:flex;gap:7px}
+.hc{font-size:10px;padding:3px 9px;border-radius:20px;border:1px solid var(--brd2);color:var(--txt2);font-family:'Courier New',monospace}
+.hc b{color:var(--txt)}.hc.hot b{color:var(--red)}
+
+/* NAV */
+.bn{position:fixed;bottom:0;left:0;right:0;z-index:100;
+  height:calc(var(--nh) + env(safe-area-inset-bottom,0px));
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  background:rgba(13,13,15,.97);border-top:1px solid var(--brd);
+  display:flex;align-items:flex-start;padding-top:6px}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:6px 4px;cursor:pointer;border:none;background:none;color:var(--txt3)}
+.nb.on{color:var(--acc)}
+.ni{font-size:22px;line-height:1}
+.nl{font-size:9px;text-transform:uppercase;letter-spacing:.08em;font-family:'Courier New',monospace}
+
+/* FAB */
+.fab{position:fixed;bottom:calc(var(--nh) + env(safe-area-inset-bottom,0px) + 14px);right:16px;
+  width:52px;height:52px;border-radius:50%;
+  background:var(--acc);color:var(--bg);border:none;font-size:26px;font-weight:900;
+  cursor:pointer;box-shadow:0 4px 20px rgba(232,200,74,.4);
+  display:flex;align-items:center;justify-content:center;z-index:90}
+.fab:active{opacity:.8}
+
+/* VIEWS */
+.view{display:none;padding:14px 14px 12px}
+.view.on{display:block}
+
+/* FILTERS */
+.fscroll{display:flex;gap:7px;overflow-x:auto;padding-bottom:2px;margin-bottom:14px}
+.fscroll::-webkit-scrollbar{display:none}
+.fp{font-size:10px;padding:6px 13px;border-radius:20px;border:1px solid var(--brd);
+  background:transparent;color:var(--txt3);white-space:nowrap;cursor:pointer;flex-shrink:0;
+  font-family:'Courier New',monospace}
+.fp.on{background:var(--surf2);color:var(--txt);border-color:var(--brd2)}
+.fp.on[data-f=projet]{border-color:var(--pc);color:var(--pc)}
+.fp.on[data-f=action]{border-color:var(--ac);color:var(--ac)}
+.fp.on[data-f=rappel]{border-color:var(--rc);color:var(--rc)}
+.fp.on[data-f=retard]{border-color:var(--red);color:var(--red)}
+.fp.on[data-f=delegue]{border-color:var(--ora);color:var(--ora)}
+
+/* DOMAIN */
+.dsec{margin-bottom:22px}
+.dsh{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--brd)}
+.dsi{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;background:var(--surf2);border:1px solid var(--brd);flex-shrink:0}
+.dsn{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--txt2);flex:1}
+.dsc{font-size:9px;color:var(--txt3);background:var(--surf2);padding:2px 7px;border-radius:10px;font-family:'Courier New',monospace}
+
+/* CARD */
+.card{background:var(--surf);border:1px solid var(--brd);border-radius:12px;
+  padding:12px 13px;margin-bottom:8px;display:flex;gap:10px;
+  position:relative;overflow:hidden;cursor:pointer}
+.card:active{background:var(--surf2)}
+.card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:12px 0 0 12px}
+.card[data-t=projet]::before{background:var(--pc)}
+.card[data-t=action]::before{background:var(--ac)}
+.card[data-t=rappel]::before{background:var(--rc)}
+.card[data-u="🔴"]{border-color:rgba(200,74,74,.35)}
+.card[data-u="🟠"]{border-color:rgba(200,138,74,.25)}
+.card.done{opacity:.35}
+.card.done .itxt{text-decoration:line-through}
+.chk{width:22px;height:22px;border:1.5px solid var(--brd2);border-radius:6px;
+  flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;
+  font-size:12px;background:var(--surf2)}
+.card.done .chk{background:var(--grn);border-color:var(--grn);color:var(--bg)}
+.ibody{flex:1;min-width:0}
+.itxt{font-family:Georgia,serif;font-size:15px;line-height:1.5;color:var(--txt);margin-bottom:7px}
+.imeta{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.tb{font-size:9px;padding:2px 7px;border-radius:4px;text-transform:uppercase;
+  letter-spacing:.06em;font-family:'Courier New',monospace}
+.tb.projet{background:rgba(74,144,200,.15);color:var(--pc)}
+.tb.action{background:rgba(74,200,122,.15);color:var(--ac)}
+.tb.rappel{background:rgba(232,200,74,.15);color:var(--rc)}
+.ub{font-size:9px;padding:2px 7px;border-radius:4px;background:var(--surf2);
+  cursor:pointer;font-family:'Courier New',monospace}
+.ub[data-u="🔴"]{color:var(--red)}.ub[data-u="🟠"]{color:var(--ora)}
+.ub[data-u="🟡"]{color:var(--acc)}.ub[data-u="🟢"]{color:var(--grn)}
+.rb{font-size:9px;color:var(--red);background:rgba(200,74,74,.12);
+  padding:2px 7px;border-radius:4px;font-family:'Courier New',monospace;
+  animation:flk 2s infinite}
+@keyframes flk{0%,100%{opacity:1}50%{opacity:.5}}
+.delb{font-size:9px;color:var(--ora);background:rgba(200,138,74,.12);
+  padding:2px 7px;border-radius:4px;font-family:'Courier New',monospace}
+.urn{font-size:9px;color:var(--txt3);font-style:italic}
+.upick{display:none;gap:5px;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px solid var(--brd)}
+.upick.on{display:flex}
+.upb{font-size:10px;padding:5px 10px;border-radius:6px;border:1px solid var(--brd);
+  background:var(--surf2);color:var(--txt3);cursor:pointer;font-family:'Courier New',monospace}
+.upb.cur{border-color:var(--acc);color:var(--acc)}
+
+/* EMPTY */
+.empty{text-align:center;padding:60px 20px 20px;color:var(--txt3)}
+.eg{font-family:Georgia,serif;font-size:60px;font-style:italic;color:var(--brd2);margin-bottom:14px}
+.et{font-family:Georgia,serif;font-size:20px;font-style:italic;color:var(--txt2);margin-bottom:8px}
+.es{font-size:13px;line-height:1.7}
+
+/* STATS */
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.sc{background:var(--surf);border:1px solid var(--brd);border-radius:14px;padding:15px 13px}
+.scn{font-family:Georgia,serif;font-size:34px;font-weight:700;line-height:1;margin-bottom:4px}
+.scl{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--txt3);font-family:'Courier New',monospace}
+.sc.red .scn{color:var(--red)}.sc.grn .scn{color:var(--grn)}
+.sc.blu .scn{color:var(--pc)}.sc.ora .scn{color:var(--ora)}
+.rt{font-size:9px;text-transform:uppercase;letter-spacing:.15em;color:var(--txt3);
+  margin-bottom:10px;display:flex;align-items:center;gap:8px;font-family:'Courier New',monospace}
+.rt::after{content:'';flex:1;height:1px;background:var(--brd)}
+
+/* SHEET BG */
+.sbg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200}
+.sbg.on{display:block}
+
+/* SHEET */
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:210;
+  background:var(--surf);border-radius:20px 20px 0 0;border-top:1px solid var(--brd2);
+  transform:translateY(100%);transition:transform .32s ease;
+  max-height:90vh;display:flex;flex-direction:column;
+  padding-bottom:env(safe-area-inset-bottom,0px)}
+.sheet.on{transform:translateY(0)}
+.shdl{width:36px;height:4px;background:var(--brd2);border-radius:2px;margin:12px auto 0;flex-shrink:0}
+.shhd{padding:13px 16px 10px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.shttl{font-family:Georgia,serif;font-style:italic;font-size:18px}
+.shx{background:var(--surf2);border:1px solid var(--brd);border-radius:8px;
+  width:32px;height:32px;font-size:16px;display:flex;align-items:center;
+  justify-content:center;cursor:pointer;color:var(--txt2)}
+.shbody{flex:1;overflow-y:auto;padding:0 16px 16px}
+
+/* CAPTURE */
+.dta{width:100%;min-height:96px;background:var(--surf2);border:1px solid var(--brd2);
+  border-radius:12px;padding:13px 15px;color:var(--txt);
+  font-family:Georgia,serif;font-size:17px;line-height:1.6;
+  resize:none;outline:none;margin-bottom:14px}
+.dta:focus{border-color:var(--acc)}
+.dta::placeholder{color:var(--txt3);font-style:italic}
+.sl{font-size:9px;text-transform:uppercase;letter-spacing:.15em;color:var(--txt3);
+  margin-bottom:8px;display:flex;align-items:center;gap:8px;font-family:'Courier New',monospace}
+.sl::after{content:'';flex:1;height:1px;background:var(--brd)}
+.tgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:14px}
+.tt{background:var(--surf2);border:1px solid var(--brd);border-radius:10px;
+  padding:10px 4px;text-align:center;cursor:pointer;
+  font-size:9px;font-weight:700;text-transform:uppercase;color:var(--txt3);
+  display:flex;flex-direction:column;align-items:center;gap:5px}
+.tic{font-size:20px;line-height:1}
+.tt.on[data-t=auto]{border-color:var(--acc);color:var(--acc);background:rgba(232,200,74,.07)}
+.tt.on[data-t=projet]{border-color:var(--pc);color:var(--pc);background:rgba(74,144,200,.07)}
+.tt.on[data-t=action]{border-color:var(--ac);color:var(--ac);background:rgba(74,200,122,.07)}
+.tt.on[data-t=rappel]{border-color:var(--rc);color:var(--rc);background:rgba(232,200,74,.07)}
+.dscrl{display:flex;gap:7px;overflow-x:auto;margin-bottom:14px}
+.dscrl::-webkit-scrollbar{display:none}
+.dtg{background:var(--surf2);border:1px solid var(--brd);border-radius:8px;
+  padding:7px 12px;font-size:11px;font-weight:600;white-space:nowrap;
+  cursor:pointer;color:var(--txt2);flex-shrink:0;display:flex;align-items:center;gap:5px}
+.dtg.on{border-color:var(--acc);color:var(--acc);background:rgba(232,200,74,.07)}
+.urgb{background:var(--surf2);border:1px solid var(--brd);border-radius:10px;
+  padding:10px 13px;margin-bottom:14px;min-height:40px;display:flex;align-items:center;gap:10px}
+.urgb-idle{font-size:10px;color:var(--txt3);font-style:italic;font-family:'Courier New',monospace}
+.urgb-em{font-size:20px;flex-shrink:0}
+.urgb-lv{font-size:12px;font-weight:700}
+.urgb-rs{font-size:10px;color:var(--txt3);margin-top:1px;font-family:'Courier New',monospace}
+.ldr{display:none;align-items:center;gap:10px;background:var(--surf2);
+  border:1px solid var(--brd);border-left:2px solid var(--acc);border-radius:10px;
+  padding:11px 13px;margin-bottom:14px;font-size:11px;color:var(--txt2);font-family:'Courier New',monospace}
+.ldr.on{display:flex}
+.dots span{display:inline-block;width:4px;height:4px;background:var(--acc);
+  border-radius:50%;animation:dt 1.2s infinite;margin-right:3px}
+.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+@keyframes dt{0%,80%,100%{opacity:.2}40%{opacity:1}}
+.cbts{display:flex;gap:9px;margin-bottom:6px}
+.btnC{flex:1;background:var(--acc);color:var(--bg);border:none;border-radius:12px;
+  padding:14px;font-size:14px;font-weight:900;text-transform:uppercase;
+  letter-spacing:.08em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px}
+.btnC:active{opacity:.8}.btnC:disabled{opacity:.4}
+.btnD{background:var(--surf2);color:var(--txt2);border:1px solid var(--brd2);
+  border-radius:12px;padding:14px 13px;font-size:11px;font-weight:600;
+  cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px;font-family:'Courier New',monospace}
+.btnD:active{opacity:.8}.btnD:disabled{opacity:.4}
+
+/* DETAIL */
+.dtp{font-size:9px;text-transform:uppercase;letter-spacing:.15em;margin-bottom:6px;font-family:'Courier New',monospace}
+.dtt{font-family:Georgia,serif;font-size:21px;line-height:1.4;font-style:italic;margin-bottom:14px}
+.ds{margin-bottom:13px}
+.dsl{font-size:9px;text-transform:uppercase;letter-spacing:.15em;color:var(--txt3);margin-bottom:5px;font-family:'Courier New',monospace}
+.dsc2{font-size:13px;line-height:1.65;color:var(--txt2);background:var(--surf2);padding:10px 12px;border-radius:8px;border:1px solid var(--brd)}
+.dsstep{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--txt2);
+  line-height:1.5;background:var(--surf2);padding:9px 11px;border-radius:8px;border:1px solid var(--brd);margin-bottom:5px}
+.dssn{width:18px;height:18px;background:rgba(74,144,200,.15);border:1px solid rgba(74,144,200,.3);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:9px;color:var(--pc);flex-shrink:0;margin-top:1px;font-family:'Courier New',monospace}
+.del-btn{width:100%;background:rgba(200,138,74,.1);border:1px solid rgba(200,138,74,.3);
+  border-radius:10px;padding:13px;color:var(--ora);font-size:13px;font-weight:700;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:13px}
+.del-btn:active{opacity:.8}
+.del-result{background:var(--surf2);border:1px solid rgba(200,138,74,.25);border-radius:10px;
+  padding:12px 13px;margin-bottom:13px;font-size:13px;color:var(--txt2);line-height:1.65;
+  display:none;position:relative}
+.del-result::before{content:'Delegation';position:absolute;top:-9px;left:12px;
+  background:var(--surf);padding:0 7px;font-size:9px;color:var(--ora);
+  text-transform:uppercase;letter-spacing:.1em;font-family:'Courier New',monospace}
+
+/* CHAT */
+.detchat{border-top:1px solid var(--brd);padding:12px 16px;display:flex;flex-direction:column;gap:9px;flex-shrink:0}
+.cmsgw{display:flex;flex-direction:column;gap:8px;max-height:160px;overflow-y:auto}
+.cm{max-width:88%}.cm.ai{align-self:flex-start}.cm.user{align-self:flex-end}
+.cmb{padding:9px 13px;border-radius:14px;font-size:14px;line-height:1.55}
+.cm.ai .cmb{background:var(--surf2);border:1px solid var(--brd);color:var(--txt2);border-top-left-radius:3px}
+.cm.user .cmb{background:rgba(232,200,74,.1);border:1px solid rgba(232,200,74,.2);color:var(--txt);border-top-right-radius:3px;font-family:Georgia,serif}
+.qchs{display:flex;gap:6px;flex-wrap:wrap}
+.qc{font-size:10px;padding:5px 10px;border-radius:20px;border:1px solid var(--brd);
+  background:var(--surf2);color:var(--txt3);cursor:pointer;white-space:nowrap;font-family:'Courier New',monospace}
+.qc:active{background:var(--brd2);color:var(--txt)}
+.crow{display:flex;gap:8px}
+.cin{flex:1;background:var(--surf2);border:1px solid var(--brd);border-radius:12px;
+  padding:11px 13px;font-size:13px;color:var(--txt);outline:none;font-family:'Courier New',monospace}
+.cin:focus{border-color:var(--acc)}
+.cin::placeholder{color:var(--txt3)}
+.csnd{background:var(--acc);color:var(--bg);border:none;border-radius:12px;
+  width:44px;font-size:18px;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.csnd:active{opacity:.8}.csnd:disabled{opacity:.4}
+</style>
+</head>
+<body>
+
+<header class="hd">
+  <div class="logo">Mon <em>Cerveau</em></div>
+  <div class="hchips">
+    <div class="hc hot">🔴 <b id="hU">0</b></div>
+    <div class="hc"><b id="hT">0</b> items</div>
+  </div>
+</header>
+
+<div class="view on" id="vBoard">
+  <div class="fscroll">
+    <button class="fp on" data-f="all" onclick="setF(this)">Tout</button>
+    <button class="fp" data-f="projet" onclick="setF(this)">🗂 Projets</button>
+    <button class="fp" data-f="action" onclick="setF(this)">⚡ Actions</button>
+    <button class="fp" data-f="rappel" onclick="setF(this)">🔔 Rappels</button>
+    <button class="fp" data-f="delegue" onclick="setF(this)">👤 Délégués</button>
+    <button class="fp" data-f="retard" onclick="setF(this)">⏰ Retard</button>
+  </div>
+  <div id="board"></div>
+</div>
+
+<div class="view" id="vStats">
+  <div class="sgrid">
+    <div class="sc"><div class="scn" id="sT">0</div><div class="scl">Actifs</div></div>
+    <div class="sc red"><div class="scn" id="sU">0</div><div class="scl">Urgents</div></div>
+    <div class="sc grn"><div class="scn" id="sD">0</div><div class="scl">Faits</div></div>
+    <div class="sc blu"><div class="scn" id="sP">0</div><div class="scl">Projets</div></div>
+    <div class="sc ora"><div class="scn" id="sDel">0</div><div class="scl">Délégués</div></div>
+  </div>
+  <div class="rt">Récents</div>
+  <div id="recents"></div>
+</div>
+
+<nav class="bn">
+  <button class="nb on" data-v="Board" onclick="sw(this)"><span class="ni">◫</span><span class="nl">Board</span></button>
+  <button class="nb" data-v="Stats" onclick="sw(this)"><span class="ni">◎</span><span class="nl">Stats</span></button>
+</nav>
+
+<button class="fab" onclick="openCap()">＋</button>
+<div class="sbg" id="sbg" onclick="closeBg()"></div>
+
+<!-- CAPTURE -->
+<div class="sheet" id="capSh">
+  <div class="shdl"></div>
+  <div class="shhd"><div class="shttl">Déverse ici</div><button class="shx" onclick="closeCap()">✕</button></div>
+  <div class="shbody">
+    <textarea class="dta" id="dta" placeholder="Rappeler patient Dupont… renouveler assurance… idée SEO acouphènes… URSSAF…" oninput="ar(this)"></textarea>
+    <div class="sl">Type</div>
+    <div class="tgrid">
+      <div class="tt on" data-t="auto"><span class="tic">✦</span>Auto</div>
+      <div class="tt" data-t="projet"><span class="tic">🗂</span>Projet</div>
+      <div class="tt" data-t="action"><span class="tic">⚡</span>Action</div>
+      <div class="tt" data-t="rappel"><span class="tic">🔔</span>Rappel</div>
+    </div>
+    <div class="sl">Domaine</div>
+    <div class="dscrl">
+      <div class="dtg on" data-d="auto">✦ Auto</div>
+      <div class="dtg" data-d="Cabinet">🏥 Cabinet</div>
+      <div class="dtg" data-d="Paul Hosteo">🏢 Paul Hosteo</div>
+      <div class="dtg" data-d="SEO / Sites">🌐 SEO</div>
+      <div class="dtg" data-d="Admin">📋 Admin</div>
+      <div class="dtg" data-d="Finance">💶 Finance</div>
+      <div class="dtg" data-d="Perso">🏠 Perso</div>
+      <div class="dtg" data-d="Sport & Santé">⚕️ Santé</div>
+    </div>
+    <div class="sl">Urgence <span style="color:var(--acc);font-size:8px;margin-left:4px">✦ Claude décide</span></div>
+    <div class="urgb" id="urgb"><span class="urgb-idle">Détectée automatiquement.</span></div>
+    <div class="ldr" id="ldr"><span>✦</span><span>Claude analyse…</span><span class="dots"><span></span><span></span><span></span></span></div>
+    <div class="cbts">
+      <button class="btnC" id="btnC" onclick="capture()">Capturer →</button>
+      <button class="btnD" id="btnD" onclick="aiDump()">✦ Tout analyser</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL -->
+<div class="sheet" id="detSh">
+  <div class="shdl"></div>
+  <div class="shhd"><div class="dtp" id="dType"></div><button class="shx" onclick="closeDet()">✕</button></div>
+  <div class="shbody">
+    <div class="dtt" id="dTitle"></div>
+    <div id="dContent"></div>
+    <button class="del-btn" id="delBtn" onclick="askDelegate()">👤 Qui peut faire ça à ma place ?</button>
+    <div class="del-result" id="delResult"></div>
+  </div>
+  <div class="detchat">
+    <div class="cmsgw" id="chatW"></div>
+    <div class="qchs" id="qchs"></div>
+    <div class="crow">
+      <input class="cin" id="cin" placeholder="Demande à Claude…" onkeydown="if(event.key==='Enter')send()">
+      <button class="csnd" id="csnd" onclick="send()">↑</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var H={'Content-Type':'application/json'};
+var TEAM={Cabinet:'remplaçant ostéo ou praticien Paul Hosteo','Paul Hosteo':'gestionnaire de cabinet ou praticien senior','SEO / Sites':'freelance SEO ou développeur web',Admin:'secrétaire médicale ou assistant administratif',Finance:'expert-comptable Thomas Denis (némoconseil)',Perso:'aide à domicile',Autre:'collaborateur externe'};
+var DMETA={Cabinet:{icon:'🏥',color:'#4ac87a'},'Paul Hosteo':{icon:'🏢',color:'#4a90c8'},'SEO / Sites':{icon:'🌐',color:'#9b4ac8'},Perso:{icon:'🏠',color:'#c88a4a'},Admin:{icon:'📋',color:'#c8c84a'},Finance:{icon:'💶',color:'#4ac8c8'},'Sport & Santé':{icon:'⚕️',color:'#c84a7a'},Autre:{icon:'📌',color:'#5a5855'}};
+var items=[];
+var cf='all',curId=null,chatH=[];
+
+async function loadData(){
+  try{
+    var r=await fetch('/api/items');
+    if(r.ok){var d=await r.json();if(Array.isArray(d))items=d;}
+  }catch(e){}
+  renderAll();updateStats();
+}
+
+function save(){
+  fetch('/api/items',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(items)}).catch(function(){});
+}
+function ar(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,170)+'px'}
+
+function sw(btn){
+  document.querySelectorAll('.nb').forEach(function(b){b.classList.remove('on')});
+  btn.classList.add('on');
+  var v=btn.dataset.v;
+  document.querySelectorAll('.view').forEach(function(x){x.classList.remove('on')});
+  document.getElementById('v'+v).classList.add('on');
+  window.scrollTo(0,0);
+  if(v==='Stats')renderStats();
+}
+
+function openCap(){
+  document.getElementById('sbg').classList.add('on');
+  document.getElementById('capSh').classList.add('on');
+}
+function closeCap(){
+  document.getElementById('capSh').classList.remove('on');
+  document.getElementById('sbg').classList.remove('on');
+}
+function openDet(id){
+  var it=items.find(function(x){return x.id==id});
+  if(!it)return;
+  curId=id;chatH=[];
+  var tc=it.type==='projet'?'#4a90c8':it.type==='action'?'#4ac87a':'#e8c84a';
+  var tl=it.type==='projet'?'🗂 Projet':it.type==='action'?'⚡ Action':'🔔 Rappel';
+  document.getElementById('dType').innerHTML='<span style="color:'+tc+'">'+tl+'</span> · '+it.domain+' · '+it.urgency;
+  document.getElementById('dTitle').textContent=it.text;
+  var h='';
+  if(it.urgencyReason)h+='<div class="ds"><div class="dsl">Urgence</div><div class="dsc2">'+it.urgency+' — '+it.urgencyReason+'</div></div>';
+  if(it.note)h+='<div class="ds"><div class="dsl">Note Claude</div><div class="dsc2">'+it.note+'</div></div>';
+  if(it.delegateTo)h+='<div class="ds"><div class="dsl">Delegue a</div><div class="dsc2" style="color:#c88a4a">👤 '+it.delegateTo+'</div></div>';
+  if(it.steps&&it.steps.length){
+    h+='<div class="ds"><div class="dsl">Etapes</div>';
+    it.steps.forEach(function(s,i){h+='<div class="dsstep"><span class="dssn">'+(i+1)+'</span>'+s+'</div>'});
+    h+='</div>';
+  }
+  document.getElementById('dContent').innerHTML=h;
+  document.getElementById('chatW').innerHTML='';
+  document.getElementById('delResult').style.display='none';
+  document.getElementById('delBtn').textContent=it.delegateTo?'👤 Changer la délégation':'👤 Qui peut faire ça à ma place ?';
+  var qs=it.type==='projet'?['Par où commencer ?','Durée estimée ?','Décompose en tâches','Déléguer ?']:it.type==='action'?['Comment faire vite ?','Obstacles ?','Déléguer ?']:['Quand le faire ?','Importance réelle ?'];
+  document.getElementById('qchs').innerHTML=qs.map(function(q){return'<button class="qc" onclick="setC(\''+q+'\')">'+q+'</button>'}).join('');
+  document.getElementById('sbg').classList.add('on');
+  document.getElementById('detSh').classList.add('on');
+}
+function closeDet(){
+  document.getElementById('detSh').classList.remove('on');
+  document.getElementById('sbg').classList.remove('on');
+  curId=null;chatH=[];
+}
+function closeBg(){closeCap();closeDet()}
+
+function setF(btn){
+  document.querySelectorAll('.fp').forEach(function(b){b.classList.remove('on')});
+  btn.classList.add('on');cf=btn.dataset.f;renderBoard();
+}
+
+document.querySelectorAll('.tt').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.tt').forEach(function(x){x.classList.remove('on')});this.classList.add('on')})});
+document.querySelectorAll('.dtg').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.dtg').forEach(function(x){x.classList.remove('on')});this.classList.add('on')})});
+
+function capture(){
+  var txt=document.getElementById('dta').value.trim();
+  if(!txt)return;
+  var t=document.querySelector('.tt.on').dataset.t;
+  var d=document.querySelector('.dtg.on').dataset.d;
+  aiClassify(txt,t==='auto'?null:t,d==='auto'?null:d);
+}
+
+function aiClassify(txt,ft,fd){
+  setLdr(true);setUrg('loading');
+  var sys='Tu es l\'assistant d\'Alois Ruetsch, osteopathe Nice, fondateur Paul Hosteo, TDAH. Reponds UNIQUEMENT JSON valide:\n{"type":"projet"|"action"|"rappel","domain":"Cabinet"|"Paul Hosteo"|"SEO / Sites"|"Perso"|"Admin"|"Finance"|"Sport & Sante"|"Autre","urgency":"🔴"|"🟠"|"🟡"|"🟢","urgency_reason":"raison 8 mots max","title":"titre actionnable max 80 chars","steps":[],"retard":false,"note":"conseil 1 phrase","delegatable":true|false}\n🔴=cette semaine 🟠=2 semaines 🟡=ce mois 🟢=quand possible\nprojet=plusieurs jours action=<1h rappel=date\n'+(ft?'Type: '+ft:'')+(fd?'\nDomaine: '+fd:'');
+  fetch('/api/claude',{method:'POST',headers:H,body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,system:sys,messages:[{role:'user',content:txt}]})})
+  .then(function(r){return r.json()})
+  .then(function(d){
+    var p=JSON.parse(d.content[0].text.replace(/```json|```/g,'').trim());
+    addItem({text:p.title||txt,rawText:txt,type:ft||p.type||'action',domain:fd||p.domain||'Autre',urgency:p.urgency||'🟡',urgencyReason:p.urgency_reason||'',steps:p.steps||[],retard:p.retard||false,note:p.note||'',delegatable:p.delegatable||false});
+    setUrg('result',p.urgency,p.urgency_reason);
+    document.getElementById('dta').value='';document.getElementById('dta').style.height='';
+    setLdr(false);
+  })
+  .catch(function(){
+    addItem({text:txt,type:ft||'action',domain:fd||'Autre',urgency:'🟡',urgencyReason:'',steps:[],retard:false,note:'',delegatable:false});
+    setUrg('idle');setLdr(false);
+  });
+}
+
+function aiDump(){
+  var txt=document.getElementById('dta').value.trim();if(!txt)return;
+  setLdr(true);document.getElementById('btnD').disabled=true;
+  var sys='Tu es l\'assistant d\'Alois Ruetsch, osteopathe Nice, TDAH. UNIQUEMENT JSON:\n{"items":[{"type":"projet"|"action"|"rappel","domain":"Cabinet"|"Paul Hosteo"|"SEO / Sites"|"Perso"|"Admin"|"Finance"|"Sport & Sante"|"Autre","urgency":"🔴"|"🟠"|"🟡"|"🟢","urgency_reason":"8 mots max","title":"titre actionnable","steps":[],"retard":false,"note":"","delegatable":false}],"summary":"1 phrase"}';
+  fetch('/api/claude',{method:'POST',headers:H,body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,system:sys,messages:[{role:'user',content:txt}]})})
+  .then(function(r){return r.json()})
+  .then(function(d){
+    var p=JSON.parse(d.content[0].text.replace(/```json|```/g,'').trim());
+    (p.items||[]).forEach(function(it){addItem({text:it.title,type:it.type||'action',domain:it.domain||'Autre',urgency:it.urgency||'🟡',urgencyReason:it.urgency_reason||'',steps:it.steps||[],retard:it.retard||false,note:it.note||'',delegatable:it.delegatable||false})});
+    document.getElementById('dta').value='';document.getElementById('dta').style.height='';
+    setUrg('done',null,(p.items?p.items.length:0)+' elements captures');
+    setLdr(false);document.getElementById('btnD').disabled=false;
+  })
+  .catch(function(){setUrg('idle');setLdr(false);document.getElementById('btnD').disabled=false});
+}
+
+function addItem(d){
+  items.unshift({id:Date.now()+Math.random(),text:d.text,rawText:d.rawText||'',type:d.type,domain:d.domain,urgency:d.urgency,urgencyReason:d.urgencyReason||'',steps:d.steps||[],retard:d.retard||false,note:d.note||'',delegatable:d.delegatable||false,delegateTo:d.delegateTo||'',done:false,createdAt:new Date().toISOString()});
+  save();renderBoard();updateStats();
+}
+
+function askDelegate(){
+  var it=items.find(function(x){return x.id==curId});if(!it)return;
+  document.getElementById('delBtn').disabled=true;
+  document.getElementById('delBtn').textContent='Analyse en cours...';
+  var hint=TEAM[it.domain]||'collaborateur';
+  var sys='Tu es l\'assistant d\'Alois Ruetsch, osteopathe Nice. Pour la tache "'+it.text+'" (domaine: '+it.domain+'), suggere a qui deleguer. Interlocuteurs: '+hint+'. Reponds en 2-3 lignes: "Delegue a [qui] — [pourquoi et comment]". Tres concret.';
+  fetch('/api/claude',{method:'POST',headers:H,body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,system:sys,messages:[{role:'user',content:'Qui peut faire ca a ma place ?'}]})})
+  .then(function(r){return r.json()})
+  .then(function(d){
+    var reply=d.content[0].text||'';
+    var el=document.getElementById('delResult');
+    el.textContent=reply;el.style.display='block';
+    var match=reply.match(/Deleg[^a]*a ([^—\n]+)/i);
+    if(match){it.delegateTo=match[1].trim();it.delegatable=true;save();renderBoard();updateStats()}
+    document.getElementById('delBtn').textContent='👤 Changer la delegation';
+    document.getElementById('delBtn').disabled=false;
+  })
+  .catch(function(){
+    document.getElementById('delResult').textContent='Erreur reseau.';
+    document.getElementById('delResult').style.display='block';
+    document.getElementById('delBtn').disabled=false;
+  });
+}
+
+function renderBoard(){
+  var uo={'🔴':0,'🟠':1,'🟡':2,'🟢':3};
+  var f=items.filter(function(it){
+    if(cf==='projet')return it.type==='projet';
+    if(cf==='action')return it.type==='action';
+    if(cf==='rappel')return it.type==='rappel';
+    if(cf==='retard')return it.retard&&!it.done;
+    if(cf==='delegue')return it.delegatable||it.delegateTo;
+    return true;
+  });
+  if(!f.length){
+    document.getElementById('board').innerHTML='<div class="empty"><div class="eg">o</div><div class="et">'+(items.length?'Rien ici.':'Pret a capturer.')+'</div><div class="es">'+(items.length?'Change le filtre.':'Appuie sur + pour commencer.')+'</div></div>';
+    return;
+  }
+  f.sort(function(a,b){if(a.done!==b.done)return a.done?1:-1;return(uo[a.urgency]||2)-(uo[b.urgency]||2)});
+  var g={};
+  f.forEach(function(it){if(!g[it.domain])g[it.domain]=[];g[it.domain].push(it)});
+  var h='';
+  Object.keys(g).forEach(function(dom){
+    var its=g[dom];
+    var m=DMETA[dom]||{icon:'📌',color:'#5a5855'};
+    h+='<div class="dsec"><div class="dsh"><div class="dsi" style="border-color:'+m.color+'30;background:'+m.color+'10">'+m.icon+'</div><div class="dsn" style="color:'+m.color+'">'+dom+'</div><div class="dsc">'+its.length+'</div></div>';
+    its.forEach(function(it){
+      var tl=it.type==='projet'?'🗂 Projet':it.type==='action'?'⚡ Action':'🔔 Rappel';
+      var ul=it.urgency==='🔴'?'URGENT':it.urgency==='🟠'?'ELEVE':it.urgency==='🟡'?'NORMAL':'FAIBLE';
+      var picker='<div class="upick" id="up-'+it.id+'">';
+      ['🔴','🟠','🟡','🟢'].forEach(function(u){var l=u==='🔴'?'Urgent':u==='🟠'?'Eleve':u==='🟡'?'Normal':'Faible';picker+='<button class="upb '+(it.urgency===u?'cur':'')+'" onclick="chU(\''+it.id+'\',\''+u+'\',event)">'+u+' '+l+'</button>'});
+      picker+='</div>';
+      h+='<div class="card '+(it.done?'done':'')+'" data-t="'+it.type+'" data-u="'+it.urgency+'" onclick="openDet(\''+it.id+'\')">';
+      h+='<div class="chk" onclick="event.stopPropagation();togD(\''+it.id+'\')">'+(it.done?'✓':'')+'</div>';
+      h+='<div class="ibody"><div class="itxt">'+it.text+'</div><div class="imeta">';
+      h+='<span class="tb '+it.type+'">'+tl+'</span>';
+      h+='<span class="ub" data-u="'+it.urgency+'" onclick="event.stopPropagation();togP(\''+it.id+'\')">'+it.urgency+' '+ul+'</span>';
+      if(it.urgencyReason)h+='<span class="urn">— '+it.urgencyReason+'</span>';
+      if(it.retard)h+='<span class="rb">⏰ retard</span>';
+      if(it.delegateTo)h+='<span class="delb">👤 '+it.delegateTo+'</span>';
+      else if(it.delegatable)h+='<span class="delb" style="opacity:.5">👤 delegable</span>';
+      h+='</div>'+picker+'</div></div>';
+    });
+    h+='</div>';
+  });
+  document.getElementById('board').innerHTML=h;
+}
+
+function togD(id){var it=items.find(function(x){return x.id==id});if(it){it.done=!it.done;save();renderBoard();updateStats()}}
+function togP(id){var el=document.getElementById('up-'+id);if(el)el.classList.toggle('on')}
+function chU(id,u,e){e.stopPropagation();var it=items.find(function(x){return x.id==id});if(it){it.urgency=u;it.urgencyReason='Modifie manuellement';save();renderBoard()}}
+
+function updateStats(){
+  var a=items.filter(function(x){return!x.done});
+  document.getElementById('hT').textContent=a.length;
+  document.getElementById('hU').textContent=a.filter(function(x){return x.urgency==='🔴'}).length;
+}
+function renderStats(){
+  var a=items.filter(function(x){return!x.done});
+  document.getElementById('sT').textContent=a.length;
+  document.getElementById('sU').textContent=a.filter(function(x){return x.urgency==='🔴'}).length;
+  document.getElementById('sD').textContent=items.filter(function(x){return x.done}).length;
+  document.getElementById('sP').textContent=a.filter(function(x){return x.type==='projet'}).length;
+  document.getElementById('sDel').textContent=a.filter(function(x){return x.delegateTo||x.delegatable}).length;
+  document.getElementById('recents').innerHTML=items.slice(0,6).map(function(it){
+    return'<div class="card '+(it.done?'done':'')+'" data-t="'+it.type+'" data-u="'+it.urgency+'" onclick="openDet(\''+it.id+'\')" style="margin-bottom:8px"><div class="ibody"><div class="itxt">'+(it.type==='projet'?'🗂':it.type==='action'?'⚡':'🔔')+' '+it.text+'</div><div class="imeta"><span class="ub" data-u="'+it.urgency+'">'+it.urgency+'</span><span style="font-size:9px;color:var(--txt3);font-family:Courier New,monospace">'+it.domain+'</span>'+(it.delegateTo?'<span class="delb">👤 '+it.delegateTo+'</span>':'')+'</div></div></div>'
+  }).join('');
+}
+
+function setUrg(s,em,rs){
+  var b=document.getElementById('urgb');
+  var cols={'🔴':'#c84a4a','🟠':'#c88a4a','🟡':'#e8c84a','🟢':'#4ac87a'};
+  var labs={'🔴':'URGENT','🟠':'ELEVE','🟡':'NORMAL','🟢':'FAIBLE'};
+  if(s==='loading')b.innerHTML='<span class="urgb-idle" style="color:#e8c84a">✦ Claude evalue...</span>';
+  else if(s==='result'){b.innerHTML='<span class="urgb-em">'+em+'</span><div><div class="urgb-lv" style="color:'+(cols[em]||'#f0ede8')+'">'+labs[em]+'</div>'+(rs?'<div class="urgb-rs">'+rs+'</div>':'')+'</div>';setTimeout(function(){setUrg('idle')},7000)}
+  else if(s==='done'){b.innerHTML='<span class="urgb-idle" style="color:#4ac87a">✓ '+rs+'</span>';setTimeout(function(){setUrg('idle')},5000)}
+  else b.innerHTML='<span class="urgb-idle">Detectee automatiquement.</span>';
+}
+function setLdr(on){document.getElementById('ldr').classList.toggle('on',on);document.getElementById('btnC').disabled=on}
+
+function setC(t){document.getElementById('cin').value=t;document.getElementById('cin').focus()}
+function send(){
+  var inp=document.getElementById('cin').value.trim();
+  if(!inp||!curId)return;
+  var it=items.find(function(x){return x.id==curId});if(!it)return;
+  document.getElementById('cin').value='';
+  document.getElementById('csnd').disabled=true;
+  chatH.push({role:'user',content:inp});renderChat();
+  var sys='Tu es l\'assistant d\'Alois (osteopathe Nice, TDAH). Element: "'+it.text+'" ('+it.type+', '+it.domain+', '+it.urgency+'). Delegue a: '+(it.delegateTo||'personne')+'. Sois concis, direct, actionnable. Max 4 lignes.';
+  fetch('/api/claude',{method:'POST',headers:H,body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:500,system:sys,messages:chatH})})
+  .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json()})
+  .then(function(d){
+    if(d.error)throw new Error(d.error.message||'API error');
+    chatH.push({role:'assistant',content:d.content[0].text||'Erreur.'});
+    renderChat();document.getElementById('csnd').disabled=false;
+  })
+  .catch(function(e){chatH.push({role:'assistant',content:'Erreur: '+e.message});renderChat();document.getElementById('csnd').disabled=false});
+}
+function renderChat(){
+  var c=document.getElementById('chatW');
+  c.innerHTML=chatH.map(function(m){return'<div class="cm '+(m.role==='user'?'user':'ai')+'"><div class="cmb">'+m.content.replace(/\n/g,'<br>')+'</div></div>'}).join('');
+  c.scrollTop=c.scrollHeight;
+}
+
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeBg()});
+loadData();
+</script>
+</body>
+</html>
